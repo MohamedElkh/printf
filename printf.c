@@ -23,5 +23,5 @@ int _printf(const char *format, ...)
 
 	len = p_for(format, vals);
 	va_end(vals);
-	return (len);	
+	return (len);
 }
