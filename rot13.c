@@ -2,12 +2,12 @@
 
 /**
  * p_rot - function to print
- * @vals - character to be checked.
+ * @R - character to be checked.
  *
  * Return: the result.
  */
 
-int p_rot(va_list vals)
+int p_rot(va_list R)
 {
 	int x, y, value = 0;
 	char *res;
@@ -15,7 +15,7 @@ int p_rot(va_list vals)
 	char inp[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz";
 	char outp[] = "NOPQRSTUVWXYZABCDEFGHIJKLM nopqrstuvwxyzabcdefghijklm";
 
-	res = va_arg(vals, char *);
+	res = va_arg(R, char *);
 	if (res == NULL)
 	{
 		res = "(null)";
