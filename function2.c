@@ -70,7 +70,6 @@ int _spec_f(char ff, va_list vals)
 		{"d", p_int},
 		{"i", p_int},
 		{"b", _p_bin},
-		{"R", p_rot},
 		{NULL, NULL}
 	};
 
