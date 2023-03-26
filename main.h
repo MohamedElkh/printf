@@ -17,7 +17,7 @@ int _val_ch(char name);
 int p_invalid(char xx, char ff, int co);
 int _spec_f(char ff, va_list vals);
 int p_for(const char *ff, va_list vals);
-
+int p_rot(va_list vals);
 
 /**
  * struct value_format - it is struct
