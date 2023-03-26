@@ -1,128 +1,162 @@
 #include "main.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
 
+/************************* PRINT UNSIGNED NUMBER *************************/
 /**
- * _val_ch - function to validate the character
- * @name: the character to be checked
- *
- * Return: the result.
+ * print_unsigned - Prints an unsigned number
+ * @types: List a of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: get width
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Number of chars printed.
  */
-
-int _val_ch(char name)
+int print_unsigned(va_list types, char buffer[],
+	int flags, int width, int precision, int size)
 {
-	char names[] = {'c', 's', 'd', 'i', 'b', 'R', '%'};
-	int x = 0;
+	int i = BUFF_SIZE - 2;
+	unsigned long int num = va_arg(types, unsigned long int);
 
-	while (names[x])
+	num = convert_size_unsgnd(num, size);
+
+	if (num == 0)
+		buffer[i--] = '0';
+
+	buffer[BUFF_SIZE - 1] = '\0';
+
+	while (num > 0)
 	{
-		if (names[x] == name)
-		{
-			return (1);
-		}
-		x++;
+		buffer[i--] = (num % 10) + '0';
+		num /= 10;
 	}
-	return (0);
+
+	i++;
+
+	return (write_unsgnd(0, i, buffer, flags, width, precision, size));
 }
 
+/************* PRINT UNSIGNED NUMBER IN OCTAL  ****************/
 /**
- * p_invalid - function to be checked
- * @xx: the character to be checked
- * @ff: the character to be checked
- * @co: the number to be checked
- *
- * Return: the result.
+ * print_octal - Prints an unsigned number in octal notation
+ * @types: Lista of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: get width
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Number of chars printed
  */
-
-int p_invalid(char xx, char ff, int co)
+int print_octal(va_list types, char buffer[],
+	int flags, int width, int precision, int size)
 {
-	co += _print('%');
 
-	if (xx == ' ')
+	int i = BUFF_SIZE - 2;
+	unsigned long int num = va_arg(types, unsigned long int);
+	unsigned long int init_num = num;
+
+	UNUSED(width);
+
+	num = convert_size_unsgnd(num, size);
+
+	if (num == 0)
+		buffer[i--] = '0';
+
+	buffer[BUFF_SIZE - 1] = '\0';
+
+	while (num > 0)
 	{
-		co += _print(' ');
-		co += _print(ff);
+		buffer[i--] = (num % 8) + '0';
+		num /= 8;
 	}
-	else
-	{
-		co += _print(ff);
-	}
-	return (co);
+
+	if (flags & F_HASH && init_num != 0)
+		buffer[i--] = '0';
+
+	i++;
+
+	return (write_unsgnd(0, i, buffer, flags, width, precision, size));
 }
 
+/************** PRINT UNSIGNED NUMBER IN HEXADECIMAL **************/
 /**
- * _spec_f - print the right function
- * @ff: the specifier to be printed
- * @vals: the character to be checked
- *
- * Return: the result.
+ * print_hexadecimal - Prints an unsigned number in hexadecimal notation
+ * @types: Lista of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: get width
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Number of chars printed
  */
-
-int _spec_f(char ff, va_list vals)
+int print_hexadecimal(va_list types, char buffer[],
+	int flags, int width, int precision, int size)
 {
-	int x = 0;
-	int len = 0;
-
-	vf names[] = {
-		{"c", p_char},
-		{"s", p_str},
-		{"d", p_int},
-		{"i", p_int},
-		{"b", _p_bin},
-		{"R", p_rot},
-		{NULL, NULL}
-	};
-
-	while (names[x].x)
-	{
-		if (*names[x].x == ff)
-		{
-			len = names[x].f(vals);
-		}
-		x++;
-	}
-	return (len);
+	return (print_hexa(types, "0123456789abcdef", buffer,
+		flags, 'x', width, precision, size));
 }
 
+/************* PRINT UNSIGNED NUMBER IN UPPER HEXADECIMAL **************/
 /**
- * p_for - function to print 
- * @ff: pointer to be checked
- * @vals: the character to be checked
- *
- * Return: the result.
+ * print_hexa_upper - Prints an unsigned number in upper hexadecimal notation
+ * @types: Lista of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: get width
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Number of chars printed
  */
-
-int p_for(const char *ff, va_list vals)
+int print_hexa_upper(va_list types, char buffer[],
+	int flags, int width, int precision, int size)
 {
-	int x = 0;
-	int len = 0;
-
-	while (ff && ff[x])
-	{
-		if (ff[x] == '%')
-		{
-			if (ff[x + 1] == '\0')
-				return (-1);
-			x++;
-			while (ff[x] == ' ')
-				x++;
-			if (ff[x] == '%')
-				len += _print(ff[x]);
-			if (_val_ch(ff[x]) == 0)
-			{
-				len = p_invalid(ff[x - 1], ff[x], len);
-			}
-			else
-			{
-				len += _spec_f(ff[x], vals);
-			}
-		}
-		else
-		{
-			len += _print(ff[x]);
-		}
-		x++;
-	}
-	return (len);
+	return (print_hexa(types, "0123456789ABCDEF", buffer,
+		flags, 'X', width, precision, size));
 }
+
+/************** PRINT HEXX NUM IN LOWER OR UPPER **************/
+/**
+ * print_hexa - Prints a hexadecimal number in lower or upper
+ * @types: Lista of arguments
+ * @map_to: Array of values to map the number to
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @flag_ch: Calculates active flags
+ * @width: get width
+ * @precision: Precision specification
+ * @size: Size specifier
+ * @size: Size specification
+ * Return: Number of chars printed
+ */
+int print_hexa(va_list types, char map_to[], char buffer[],
+	int flags, char flag_ch, int width, int precision, int size)
+{
+	int i = BUFF_SIZE - 2;
+	unsigned long int num = va_arg(types, unsigned long int);
+	unsigned long int init_num = num;
+
+	UNUSED(width);
+
+	num = convert_size_unsgnd(num, size);
+
+	if (num == 0)
+		buffer[i--] = '0';
+
+	buffer[BUFF_SIZE - 1] = '\0';
+
+	while (num > 0)
+	{
+		buffer[i--] = map_to[num % 16];
+		num /= 16;
+	}
+
+	if (flags & F_HASH && init_num != 0)
+	{
+		buffer[i--] = flag_ch;
+		buffer[i--] = '0';
+	}
+
+	i++;
+
+	return (write_unsgnd(0, i, buffer, flags, width, precision, size));
+}
+

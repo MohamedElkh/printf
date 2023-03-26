@@ -1,96 +1,191 @@
 #include "main.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+
+/************************* PRINT CHAR *************************/
 
 /**
- * p_str - a function to print string
- * @vals: the character to be checked
- *
- * Return: the length of st.
+ * print_char - Prints a char
+ * @types: List a of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: Width
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Number of chars printed
  */
-
-int p_str(va_list vals)
+int print_char(va_list types, char buffer[],
+	int flags, int width, int precision, int size)
 {
-	char *val = va_arg(vals, char *);
-	int x = 0;
+	char c = va_arg(types, int);
 
-	if (val != NULL)
+	return (handle_write_char(c, buffer, flags, width, precision, size));
+}
+/************************* PRINT A STRING *************************/
+/**
+ * print_string - Prints a string
+ * @types: List a of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: get width.
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Number of chars printed
+ */
+int print_string(va_list types, char buffer[],
+	int flags, int width, int precision, int size)
+{
+	int length = 0, i;
+	char *str = va_arg(types, char *);
+
+	UNUSED(buffer);
+	UNUSED(flags);
+	UNUSED(width);
+	UNUSED(precision);
+	UNUSED(size);
+	if (str == NULL)
 	{
-		for (x = 0; val[x] != '\0'; x++)
+		str = "(null)";
+		if (precision >= 6)
+			str = "      ";
+	}
+
+	while (str[length] != '\0')
+		length++;
+
+	if (precision >= 0 && precision < length)
+		length = precision;
+
+	if (width > length)
+	{
+		if (flags & F_MINUS)
 		{
-			_print(val[x]);
+			write(1, &str[0], length);
+			for (i = width - length; i > 0; i--)
+				write(1, " ", 1);
+			return (width);
 		}
-		return (x);
+		else
+		{
+			for (i = width - length; i > 0; i--)
+				write(1, " ", 1);
+			write(1, &str[0], length);
+			return (width);
+		}
 	}
-	_print('(');
-	 _print('n');
-	  _print('u');
-	   _print('l');
-	    _print('l');
-	     _print(')');
-	     return (6);
-}
 
+	return (write(1, str, length));
+}
+/************************* PRINT PERCENT SIGN *************************/
 /**
- * p_char - print character
- * @vals: the character to be checked
- *
- * Return: the result.
+ * print_percent - Prints a percent sign
+ * @types: Lista of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: get width.
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Number of chars printed
  */
-
-int p_char(va_list vals)
+int print_percent(va_list types, char buffer[],
+	int flags, int width, int precision, int size)
 {
-	_print(va_arg(vals, int));
-	return (1);	
+	UNUSED(types);
+	UNUSED(buffer);
+	UNUSED(flags);
+	UNUSED(width);
+	UNUSED(precision);
+	UNUSED(size);
+	return (write(1, "%%", 1));
 }
 
+/************************* PRINT INT *************************/
 /**
- * rec_int - function to print
- * i: character to be checked.
- *
- * Return: nothing.
+ * print_int - Print int
+ * @types: Lista of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: get width.
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Number of chars printed
  */
-
-void rec_int(int i)
+int print_int(va_list types, char buffer[],
+	int flags, int width, int precision, int size)
 {
-	unsigned int x;
+	int i = BUFF_SIZE - 2;
+	int is_negative = 0;
+	long int n = va_arg(types, long int);
+	unsigned long int num;
 
-	x = i;
-	if (x / 10)
+	n = convert_size_number(n, size);
+
+	if (n == 0)
+		buffer[i--] = '0';
+
+	buffer[BUFF_SIZE - 1] = '\0';
+	num = (unsigned long int)n;
+
+	if (n < 0)
 	{
-		rec_int(x / 10);
+		num = (unsigned long int)((-1) * n);
+		is_negative = 1;
 	}
-	_print(x % 10 + '0');
+
+	while (num > 0)
+	{
+		buffer[i--] = (num % 10) + '0';
+		num /= 10;
+	}
+
+	i++;
+
+	return (write_number(is_negative, i, buffer, flags, width, precision, size));
 }
 
+/************************* PRINT BINARY *************************/
 /**
- * p_int - function to print int
- * @vals: the character to be checked.
- *
- * Return: the result.
+ * print_binary - Prints an unsigned number
+ * @types: Lista of arguments
+ * @buffer: Buffer array to handle print
+ * @flags:  Calculates active flags
+ * @width: get width.
+ * @precision: Precision specification
+ * @size: Size specifier
+ * Return: Numbers of char printed.
  */
-
-int p_int(va_list vals)
+int print_binary(va_list types, char buffer[],
+	int flags, int width, int precision, int size)
 {
-	unsigned int res = 0;
-	int i = 0, co = 1;
+	unsigned int n, m, i, sum;
+	unsigned int a[32];
+	int count;
 
-	res = va_arg(vals, int);
-	i = res;
+	UNUSED(buffer);
+	UNUSED(flags);
+	UNUSED(width);
+	UNUSED(precision);
+	UNUSED(size);
 
-	if (i < 0)
+	n = va_arg(types, unsigned int);
+	m = 2147483648; /* (2 ^ 31) */
+	a[0] = n / m;
+	for (i = 1; i < 32; i++)
 	{
-		_print('-');
-		i *= -1;
-		res = i;
-		co += 1;
+		m /= 2;
+		a[i] = (n / m) % 2;
 	}
-	while (res > 9)
+	for (i = 0, sum = 0, count = 0; i < 32; i++)
 	{
-		res /= 10;
-		co++;
+		sum += a[i];
+		if (sum || i == 31)
+		{
+			char z = '0' + a[i];
+
+			write(1, &z, 1);
+			count++;
+		}
 	}
-	rec_int(i);
-	return (co);
+	return (count);
 }
+
+
+
