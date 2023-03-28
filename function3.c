@@ -63,7 +63,7 @@ int print_pointer(va_list types, char buffer[], int flags, int width, int precis
  */
 int print_non_printable(va_list types, char buffer[], int flags, int width, int precision, int size)
 {
-	int i = 0, offset = 0;
+	int x = 0, offset = 0;
 	char *str = va_arg(types, char *);
 
 	UNUSED(flags);
@@ -74,19 +74,21 @@ int print_non_printable(va_list types, char buffer[], int flags, int width, int 
 	if (str == NULL)
 		return (write(1, "(null)", 6));
 
-	while (str[i] != '\0')
+	while (str[x] != '\0')
 	{
-		if (is_printable(str[i]))
-			buffer[i + offset] = str[i];
+		if (is_printable(str[x]))
+		{
+			buffer[x + offset] = str[x];
+		}
 		else
-			offset += append_hexa_code(str[i], buffer, i + offset);
-
-		i++;
+		{
+			offset += append_hexa_code(str[x], buffer, x + offset);
+		}
+		x++;
 	}
+	buffer[x + offset] = '\0';
 
-	buffer[i + offset] = '\0';
-
-	return (write(1, buffer, i + offset));
+	return (write(1, buffer, x + offset));
 }
 
 /************************* PRINT REVERSE *************************/
@@ -104,7 +106,7 @@ int print_non_printable(va_list types, char buffer[], int flags, int width, int 
 int print_reverse(va_list types, char buffer[], int flags, int width, int precision, int size)
 {
 	char *str;
-	int i, count = 0;
+	int x, co = 0;
 
 	UNUSED(buffer);
 	UNUSED(flags);
@@ -119,17 +121,17 @@ int print_reverse(va_list types, char buffer[], int flags, int width, int precis
 
 		str = ")Null(";
 	}
-	for (i = 0; str[i]; i++)
+	for (x = 0; str[x]; x++)
 		;
 
-	for (i = i - 1; i >= 0; i--)
+	for (x = x - 1; x >= 0; x--)
 	{
-		char z = str[i];
+		char z = str[x];
 
 		write(1, &z, 1);
-		count++;
+		co++;
 	}
-	return (count);
+	return (co);
 }
 /************************* PRINT A STRING IN ROT13 *************************/
 /**
@@ -147,7 +149,7 @@ int print_rot13string(va_list types, char buffer[], int flags, int width, int pr
 	char x;
 	char *str;
 	unsigned int i, j;
-	int count = 0;
+	int co = 0;
 	char in[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	char out[] = "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm";
 
@@ -168,7 +170,7 @@ int print_rot13string(va_list types, char buffer[], int flags, int width, int pr
 			{
 				x = out[j];
 				write(1, &x, 1);
-				count++;
+				co++;
 				break;
 			}
 		}
@@ -176,9 +178,9 @@ int print_rot13string(va_list types, char buffer[], int flags, int width, int pr
 		{
 			x = str[i];
 			write(1, &x, 1);
-			count++;
+			co++;
 		}
 	}
-	return (count);
+	return (co);
 }
 
