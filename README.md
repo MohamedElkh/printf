@@ -1,4 +1,4 @@
-0x11. C - printf team project
+0x11. C - printf team project with Mohamed Elkarashy and Kayode Olubobokun
 
 Group Project:                                                                      
                                                                                     
